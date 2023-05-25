@@ -356,7 +356,7 @@ void get_long_input(uint8 *display_message)
 	return;
 }
 
-void get_char(uint8 *display_message)
+uint8 get_char(uint8 *display_message, bool wait_on_enter)
 {
 	if(display_message != NULL)
 		print(display_message, 0);
@@ -374,18 +374,25 @@ void get_char(uint8 *display_message)
 	if(user_input == 0x0E) goto redo;
 	
 	/* Print the key then store it. */
+	if(user_input == 0x01) return user_input;
 	put_char(user_input);
-	old_key = user_input;
 
-	/* Wait for `enter`. */
-	user_input = 0;
-	while(user_input != '\n') {
-		user_input = get_key();
-		if(user_input == 0x0E) { put_char(0x0E); goto redo; }
+	if(wait_on_enter)
+	{
+		old_key = user_input;
+
+		/* Wait for `enter`. */
+		user_input = 0;
+		while(user_input != '\n') {
+			user_input = get_key();
+			if(user_input == 0x0E) { put_char(0x0E); goto redo; }
+		}
+
+		/* Reassign the `user_input` to the key the user inputted. */
+		user_input = old_key;
 	}
 
-	/* Reassign the `user_input` to the key the user inputted. */
-	user_input = old_key;
+	return user_input;
 }
 
 #endif
