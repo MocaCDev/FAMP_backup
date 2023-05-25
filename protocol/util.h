@@ -166,7 +166,7 @@ void __outp(uint16 port, uint8 data) {
 }
 
 /* Get the byte value for the foreground color/background color of the text. */
-uint16 get_text_attribute(uint8 background, uint8 foreground)
+uint16 __get_text_attribute(uint8 background, uint8 foreground)
 {
     /* If the highest 4-bits are set then we will just go ahead and use that value. */
     if(((background >> 4) & 0x0F) > 0 && !(foreground & 0x0F) > 0) background = (background >> 4) & 0x0F;
@@ -182,8 +182,8 @@ uint16 get_text_attribute(uint8 background, uint8 foreground)
 }
 
 /* Get the overall value of text. First byte will represent the character, second byte will represent fg/bg. */
-uint16 get_text_value(uint8 character, uint8 foreground, uint8 background){
-    uint16 t_attr = get_text_attribute(foreground, background);
+uint16 __get_text_value(uint8 character, uint8 foreground, uint8 background){
+    uint16 t_attr = __get_text_attribute(foreground, background);
     if(t_attr == 0) return 0;
 
     return character | (t_attr << 8);

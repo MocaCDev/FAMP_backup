@@ -20,7 +20,7 @@ static uint32 last_cursor_x[cols * 4] = {0};
 static uint8  last_cursor_x_index = 0;
 
 /* Update the cursor based on c_info.pos_x and c_info.pos_y. */
-void update_cursor_pos()
+void __update_cursor_pos()
 {
     uint16 pos = (c_info.pos_y * 80) + c_info.pos_x;
     __outp(reg_screen_ctr, 14);
@@ -30,18 +30,18 @@ void update_cursor_pos()
 }
 
 /* Initialize the cursor. Set c_info.pos_x/c_info.pos_y to zero and update. */
-void init_cursor_pos()
+void __init_cursor_pos()
 {
     /* Set `pos_x`/`pos_y` to zero to initialize. */
     c_info.pos_x = c_info.pos_y = 0;
 
-    update_cursor_pos();
+    __update_cursor_pos();
 }
 
 /* Just a naming convention. Quite literally just `init_cursor_pos`, but I like my code to not be confusing :) */
-void zero_out_cursor_pos()
+void __zero_out_cursor_pos()
 {
-    init_cursor_pos();
+    __init_cursor_pos();
 }
 
 #endif

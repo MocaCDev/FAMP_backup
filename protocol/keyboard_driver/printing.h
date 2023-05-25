@@ -29,7 +29,7 @@ static uint8 default_color;
 static uint16 row_data[5000];
 static uint8 row_data_index = 0;
 
-void scroll_down()
+void __scroll_down()
 {
     /* Get all of the characters that are on the screen. */
     uint16 vid_mem_2[rows];
@@ -48,11 +48,11 @@ void scroll_down()
     /* Copy over the buffer accordingly to make it look like we "scrolled". */
     for(uint8 i = 0; i < rows - 1; i++)
     {
-        vid_mem[0 + (i * 80)] = get_text_value(vid_mem_2[i] & 0xFF, (color >> 4) & 0x0F, color & 0x0F);
+        vid_mem[0 + (i * 80)] = __get_text_value(vid_mem_2[i] & 0xFF, (color >> 4) & 0x0F, color & 0x0F);
     }
 }
 
-void scroll_up()
+void __scroll_up()
 {
     /* Get all of the characters that are currently on the screen. */
     uint16 vid_mem_2[rows];
@@ -66,7 +66,7 @@ void scroll_up()
     c_info.pos_y = 1;
     for(uint8 i = 0; i < rows - 1; i++)
     {
-        vid_mem[0 + ((c_info.pos_y) * 80)] = get_text_value(vid_mem_2[i] & 0xFF, (color >> 4) & 0x0F, color & 0x0F);
+        vid_mem[0 + ((c_info.pos_y) * 80)] = __get_text_value(vid_mem_2[i] & 0xFF, (color >> 4) & 0x0F, color & 0x0F);
         c_info.pos_y++;
     }
     
@@ -85,7 +85,7 @@ void scroll_up()
     c_info.pos_y = ly;
     c_info.pos_x = last_cursor_x[last_cursor_x_index - 1];
     last_cursor_x_index--;
-    update_cursor_pos();
+    __update_cursor_pos();
 }
 
 void put_char(uint8 character)
@@ -102,7 +102,7 @@ void put_char(uint8 character)
 
             /* Scroll if the y position is >= 25. */
             if(c_info.pos_y >= rows)
-                scroll_down();
+                __scroll_down();
 
             goto end;
         }
@@ -122,7 +122,7 @@ void put_char(uint8 character)
 
             if(row_data_index > 0)
             {
-                scroll_up();
+                __scroll_up();
                 goto end;
             }
 
@@ -147,7 +147,7 @@ void put_char(uint8 character)
     c_info.pos_x++;
 
     end:
-    update_cursor_pos();
+    __update_cursor_pos();
 }
 
 void print(const uint8 *str, uint8 endc)
@@ -280,7 +280,7 @@ void print(const uint8 *str, uint8 endc)
             c_info.pos_y++;
         }
 
-        update_cursor_pos();
+        __update_cursor_pos();
     }
 
     end:
@@ -380,18 +380,18 @@ bool strcmp(uint8 *string1, uint8 *string2)
     return true;
 }
 
-void clear()
+void __clear()
 {
     uint16 i = 0;
     while(i < rows*cols)
     {
-        memset((uint16 *)0xB8000 + (i * cols), get_text_value(' ', 0x00, 0x0F), cols);
+        memset((uint16 *)0xB8000 + (i * cols), __get_text_value(' ', 0x00, 0x0F), cols);
         i++;
     }
-    zero_out_cursor_pos();
+    __zero_out_cursor_pos();
 }
 
-uint8 get_raw_color_value()
+uint8 __get_raw_color_value()
 {
     redo_new_color:
     get_long_input(NULL);
@@ -415,7 +415,7 @@ uint8 get_raw_color_value()
     if(strcmp(input_buffer, init_new_char_array(NULL, 7, "yellow")) == true)           return yellow;
     if(strcmp(input_buffer, init_new_char_array(NULL, 6, "white")) == true)            return white;
 
-    clear();
+    __clear();
     print("\nOops.. I don't thinks `@y", 0);
     print(input_buffer, '\0');
     print("` @wis a valid color. Try again :)", '\n');
@@ -426,16 +426,16 @@ uint8 get_raw_color_value()
     goto redo_new_color;
 }
 
-void clear_screen(uint8 *function_name, uint8 bgcolor, uint8 fgcolor)
+void __clear_screen(uint8 *function_name, uint8 bgcolor, uint8 fgcolor)
 {
-    if(get_text_attribute(bgcolor, fgcolor) == 0 && oinfo->in_production == true)
+    if(__get_text_attribute(bgcolor, fgcolor) == 0 && oinfo->in_production == true)
     {
         begin_reset_colors:
 
-        clear();
+        __clear();
         
         /* Go ahead and setup a temporary color/default color so users can see the messages being printed. */
-        color = get_text_attribute(0x00, 0x0F);
+        color = __get_text_attribute(0x00, 0x0F);
         default_color = color;
 
         print("You might have made a @rmistake@w in the function `", 0);
@@ -446,9 +446,9 @@ void clear_screen(uint8 *function_name, uint8 bgcolor, uint8 fgcolor)
         print(color_names[bgcolor], '\n');
         
         redo:
-        get_char("Which would you like to change?\n\t1. Foreground\n\t2. Background\n\t3. It wasn't a mistake\n> ");
+        get_char("Which would you like to change?\n\t1. Foreground\n\t2. Background\n\t3. It wasn't a mistake\n> ", true);
 
-        clear();
+        __clear();
         
         /* Print this before we continue onward. */
         print("For reference, here is a list of all the available colors!\n(P.S you have to type the numbers out in lowercase. Type \"back\" to go back.)\n\t1. Black\n\t2. @bBlue@w\n\t3. @gGreen@w\n\t4. @cCyan@w\n\t5. @rRed@w\n\t6. @mMagenta@w\n\t7. @brBrown@w\n\t8. @lgLight Grey@w\n\t9. @dgDark Grey@w\n\t10. @lbLight Blue@w\n\t11. @lGLime Green@w\n\t12. @lcLight Cyan@w\n\t13. @lrLight Red@w\n\t14. @lmLight Magenta@w\n\t15. @yYellow@w\n\t16. White@w\n> ", 0);
@@ -460,24 +460,24 @@ void clear_screen(uint8 *function_name, uint8 bgcolor, uint8 fgcolor)
         fg:
 
         /* Get the new foreground color. */
-        uint8 nfgcolor = get_raw_color_value();
+        uint8 nfgcolor = __get_raw_color_value();
         if(nfgcolor == 'b') { user_input = 0; goto begin_reset_colors; }
         fgcolor = nfgcolor;
 
         /* Update the color. */
-        color = get_text_attribute(bgcolor, fgcolor);
+        color = __get_text_attribute(bgcolor, fgcolor);
 
         goto check_colors;
 
         bg:
 
         /* Get the new background color. */
-        uint8 nbgcolor = get_raw_color_value();
+        uint8 nbgcolor = __get_raw_color_value();
         if(nbgcolor == 'b') { user_input = 0; goto begin_reset_colors; }
         bgcolor = nbgcolor;
 
         /* Update the color. */
-        color = get_text_attribute(bgcolor, fgcolor);
+        color = __get_text_attribute(bgcolor, fgcolor);
 
         check_colors:
         clear_char_array();
@@ -489,29 +489,29 @@ void clear_screen(uint8 *function_name, uint8 bgcolor, uint8 fgcolor)
 
             /* Set `user_input` to zero so we are ready to get new input. Also clear the screen of all the junk. */
             user_input = 0;
-            clear();
+            __clear();
 
             /* Ask the user if they want FAMP to go ahead and just initialize the background color to be white. */
-            get_char("Do you want FAMP to go ahead and initialize the background to be white?\n[y/n] > ");
+            get_char("Do you want FAMP to go ahead and initialize the background to be white?\n[y/n] > ", true);
             
             put_char(user_input);
             put_char('\n');
 
-            if(user_input == 'y') color = get_text_attribute(white, black);//bgcolor = white;
+            if(user_input == 'y') color = __get_text_attribute(white, black);//bgcolor = white;
             else goto begin_reset_colors;
         }
     } else {
         endo:
-        color = get_text_attribute(bgcolor, fgcolor);
+        color = __get_text_attribute(bgcolor, fgcolor);
     }
 
     uint16 i = 0;
     while(i < rows*cols)
     {
-        memset((uint16 *)0xB8000 + (i * cols), get_text_value(' ', (color >> 4) & 0x0F, color & 0x0F), cols);
+        memset((uint16 *)0xB8000 + (i * cols), __get_text_value(' ', (color >> 4) & 0x0F, color & 0x0F), cols);
         i++;
     }
-    zero_out_cursor_pos();
+    __zero_out_cursor_pos();
 
     default_color = color;
 }

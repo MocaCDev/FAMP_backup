@@ -70,7 +70,8 @@ struct vbe_info_structure {
 /* `clear_screen` keeps track of the function name. */
 void init_kernel(uint8 *function_name, uint8 color_theme)
 {
-	clear_screen("init_kernel", (color_theme >> 4) & 0x0F, color_theme & 0x0F);
+	__clear_screen("init_kernel", (color_theme >> 4) & 0x0F, color_theme & 0x0F);
+	__init_cursor_pos();
 	uint8 *src;
 
 	//clear_screen(function_name, (color >> 4) & 0x0F, color & 0x0F);
