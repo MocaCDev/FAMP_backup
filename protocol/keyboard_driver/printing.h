@@ -54,37 +54,26 @@ static uint8 row_data_index = 0;
 
 void scroll()
 {
-    //vid_mem[0 + ((c_info.pos_y) * 80)] = (color << 8) | (0xFF & ' ');
+    /* Get all of the characters that are on the screen. */
     uint16 vid_mem_2[rows];
+    for(uint8 i = 0; i < rows - 1; i++)
+        vid_mem_2[i] = vid_mem[0 + ((i+1) * 80)];
+    
+    /* Store whatever value that is on the first line, and increment `row_data_index`. */
     row_data[row_data_index].x_pos = c_info.pos_x;
     row_data[row_data_index].row_value = vid_mem[0];
     row_data_index++;
-    
-    for(uint8 i = 0; i < rows - 1; i++)
-        vid_mem_2[i] = vid_mem[0 + ((i+1) * 80)];
 
+    /* Since there was an `enter` key pressed on the last line, we'll go back one and put a empty character. */
     c_info.pos_y--;
     put_char(' ');
     c_info.pos_x--;
 
+    /* Copy over the buffer accordingly to make it look like we "scrolled". */
     for(uint8 i = 0; i < rows - 1; i++)
     {
         vid_mem[0 + (i * 80)] = get_text_value(vid_mem_2[i] & 0xFF, (color >> 4) & 0x0F, color & 0x0F);
     }
-    /*put_char(' ');
-    put_char(vid_mem_2[0] & 0xFF);
-    put_char(' ');
-    put_char(vid_mem_2[1] & 0xFF);*/
-    //put_char(row_data[row_data_index].row_value & 0xFF);
-    //while(1);
-    /*if(c_info.pos_y >= rows - 1)
-    {
-        uint16 offset = c_info.pos_y - rows + 1;
-        memcpy(vid_mem2, vid_mem2 + (offset * cols * 2), (rows - offset) * cols * 2);
-        memsetww(vid_mem + ((rows - offset) * cols), get_text_value(' ', (color >> 4) & 0xFF, (color >> 0) & 0xFF), cols);
-        c_info.pos_y = rows - 1;
-        c_info.pos_x = 0;
-    }*/
 }
 
 void scroll_down()
