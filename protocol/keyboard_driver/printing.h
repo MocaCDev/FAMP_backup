@@ -17,39 +17,16 @@ const uint8 *color_names[] = {
     "@yyellow@w", "white"
 };
 
+/* The "color theme" that is presented throughout the program. */
 static uint8 color;
 
 /* The default color will be whatever value `color` has originally when the screen is initialized. */
 static uint8 default_color;
 
-uint8 *memcpy(uint8 *dest, const uint8 *src, lsize count)
-{
-    int8 *dstPtr = (int8 *)dest;
-    const int8* srcPtr = (const int8 *)src;
-
-    for(; count != 0; count--) *dstPtr++ = *srcPtr++;
-
-    return dest;
-}
-
-uint16 *memsetww(uint16 *dest, uint16 val, lsize count)
-{
-    uint16 *dstPtr = (uint16 *)dest;
-
-    for(; count != 0; count--) *dstPtr++ = val;
-
-    return dest;
-}
-
-static uint8 offscreen_chars[cols * 2] = {0};
-static uint16 index = 0;
-
-typedef struct OffscreenRowData
-{
-    uint16      x_pos;
-    uint16      row_value;
-} _OffscrenRowData;
-static _OffscrenRowData row_data[20];
+/* Store the character going "off screen". `5000` is hard coded for now.
+ * TODO: Figure out how to make `row_data` flexible.
+ * */
+static uint16 row_data[5000];
 static uint8 row_data_index = 0;
 
 void scroll_down()
@@ -60,8 +37,7 @@ void scroll_down()
         vid_mem_2[i] = vid_mem[0 + ((i+1) * 80)];
     
     /* Store whatever value that is on the first line, and increment `row_data_index`. */
-    row_data[row_data_index].x_pos = c_info.pos_x;
-    row_data[row_data_index].row_value = vid_mem[0];
+    row_data[row_data_index] = vid_mem[0];
     row_data_index++;
 
     /* Since there was an `enter` key pressed on the last line, we'll go back one and put a empty character. */
@@ -102,7 +78,7 @@ void scroll_up()
     c_info.pos_x = 0;
 
     /* Put the character in its place. Decrement `row_data_index`. */
-    put_char(row_data[row_data_index - 1].row_value & 0xFF);
+    put_char(row_data[row_data_index - 1] & 0xFF);
     row_data_index--;
 
     /* Reset the Y position, aswell as the X position and update the cursor accordingly. */
