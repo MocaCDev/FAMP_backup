@@ -52,7 +52,7 @@ typedef struct OffscreenRowData
 static _OffscrenRowData row_data[20];
 static uint8 row_data_index = 0;
 
-void scroll()
+void scroll_down()
 {
     /* Get all of the characters that are on the screen. */
     uint16 vid_mem_2[rows];
@@ -76,7 +76,7 @@ void scroll()
     }
 }
 
-void scroll_down()
+void scroll_up()
 {
     /* Get all of the characters that are currently on the screen. */
     uint16 vid_mem_2[rows];
@@ -126,7 +126,7 @@ void put_char(uint8 character)
 
             /* Scroll if the y position is >= 25. */
             if(c_info.pos_y >= rows)
-                scroll();
+                scroll_down();
 
             goto end;
         }
@@ -146,9 +146,7 @@ void put_char(uint8 character)
 
             if(row_data_index > 0)
             {
-                scroll_down();
-                //vid_mem[c_info.pos_x + ((c_info.pos_y-1) * 80)] = (color << 8) | (0xFF & 'a');
-                //while(1);
+                scroll_up();
                 goto end;
             }
 
