@@ -164,7 +164,7 @@ const uint8 release_scancodes[] =
 static bool shift_pressed = false;
 
 /* Check if the scancode is a release scancode. */
-uint8 check_key_is_released(uint8 scancode)
+uint8 __check_key_is_released(uint8 scancode)
 {
 	uint8 ret = scancode;
 	for(uint8 i = 0; i < sizeof(release_scancodes)/sizeof(release_scancodes[0]); i++)
@@ -174,7 +174,7 @@ uint8 check_key_is_released(uint8 scancode)
 	return ret;
 }
 
-void clear_tb()
+void __clear_tb()
 {
 	uint8 tb = 0;
 
@@ -186,14 +186,14 @@ void clear_tb()
 }
 
 /* Get a scancode from the keyboard, return appropriate ASCII/numeral value. */
-uint8 get_key() 
+uint8 __get_key() 
 {
 	uint8 scancode	= 0;
 	uint8 char_val 	= 0;
 	uint8 *shifts   = (uint8 *)")!@#$%^&*(";
 
 	redo:
-	clear_tb();
+	__clear_tb();
 
 	scancode = __inp(0x60);
 
@@ -216,7 +216,7 @@ uint8 get_key()
 			shift_pressed = true;
 
 			/* Clear the TB. */
-			clear_tb();
+			__clear_tb();
 
 			/* Get the scancode. */
 			scancode = __inp(0x60);
@@ -227,7 +227,7 @@ uint8 get_key()
 				shift_pressed = false;
 				return 0;
 			}
-			if(check_key_is_released(scancode) == 0) return 0;
+			if(__check_key_is_released(scancode) == 0) return 0;
 
 			/* Get the ASCII value. */
 			char_val = (uint8)scancode_keys[scancode];
@@ -272,7 +272,7 @@ uint8 get_key()
 
 	if(scancode == 0) return '\0';
     
-	if(check_key_is_released(scancode) == 0) return 0;
+	if(__check_key_is_released(scancode) == 0) return 0;
 
 	if(shift_pressed == true)
 	{
@@ -332,7 +332,7 @@ void get_long_input(uint8 *display_message)
 	uint8 ind = 0;
 	while(user_input != '\n')
 	{
-		user_input = get_key();
+		user_input = __get_key();
 		if(user_input == 0) continue;
 		if(user_input == 0x0E)
 		{
@@ -368,10 +368,14 @@ uint8 get_char(uint8 *display_message, bool wait_on_enter)
 	/* We always wait for `enter` to be pressed. We need to save the key that we get. */
 	uint8 old_key = user_input;
 
-	while(user_input == 0) user_input = get_key();
+	while(user_input == 0) user_input = __get_key();
 
 	/* If the user presses `backspace`, then that is invalid. Redo. */
-	if(user_input == 0x0E) goto redo;
+	if(user_input == 0x0E)
+	{
+		if(c_info.pos_x > 0 || c_info.pos_y > 0) put_char(0x0E);
+		goto redo;
+	}
 	
 	/* Print the key then store it. */
 	if(user_input == 0x01) return user_input;
@@ -384,7 +388,7 @@ uint8 get_char(uint8 *display_message, bool wait_on_enter)
 		/* Wait for `enter`. */
 		user_input = 0;
 		while(user_input != '\n') {
-			user_input = get_key();
+			user_input = __get_key();
 			if(user_input == 0x0E) { put_char(0x0E); goto redo; }
 		}
 
