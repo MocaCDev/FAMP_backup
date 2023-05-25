@@ -5,8 +5,6 @@
 extern "C" {
 #endif
 
-void print(const uint8 *str);
-
 #ifndef protocol_util
 #include "../util.h"
 #endif
@@ -24,7 +22,7 @@ void print(const uint8 *str);
 
 /* This is here so `keyboard.h` can use `put_char` and possible `print`. */
 extern void put_char(uint8 c);
-extern void print(const uint8 *str);
+extern void print(const uint8 *str, uint8 endc);
 
 #ifndef protocol_keyboard
 #include "keyboard_driver/keyboard.h"

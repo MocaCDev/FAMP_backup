@@ -169,8 +169,10 @@ void __outp(uint16 port, uint8 data) {
 uint16 get_text_attribute(uint8 background, uint8 foreground)
 {
     /* If the highest 4-bits are set then we will just go ahead and use that value. */
-    if(((background >> 4) & 0x0F) > 0) background = (background >> 4);
-    if(((foreground >> 4) & 0x0F) > 0) foreground = (foreground >> 4);
+    if(((background >> 4) & 0x0F) > 0 && !(foreground & 0x0F) > 0) background = (background >> 4) & 0x0F;
+    else background = background & 0x0F;
+    if(((foreground >> 4) & 0x0F) > 0 && !(foreground & 0x0F) > 0) foreground = (foreground >> 4) & 0x0F;
+    else foreground = foreground & 0x0F;
 
     /* Check and see if the background is the same as the foreground. */
     if(foreground == background) return 0;

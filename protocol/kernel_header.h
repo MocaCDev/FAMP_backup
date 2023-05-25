@@ -9,6 +9,19 @@ extern "C" {
 #include "types.h"
 #endif
 
+/* FS/OS informatin. */
+#pragma pack(1)
+typedef struct OS_info
+{
+    uint8       FS_type;
+    uint8       OS_name[16];
+    uint8       OS_version[6];
+    uint8       OS_type;
+	bool		in_production;
+} _OS_info;
+#pragma pop
+const _OS_info *oinfo = (_OS_info *) 0x7D00;
+
 #ifndef protocol_util
 #include "util.h"
 #endif
@@ -54,17 +67,49 @@ struct vbe_info_structure {
 	char oem_data[256];		// OEM BIOSes store their strings in this area
 };
 
-/* FS/OS informatin. */
-#pragma pack(1)
-typedef struct OS_info
+/* `clear_screen` keeps track of the function name. */
+void init_kernel(uint8 *function_name, uint8 color_theme)
 {
-    uint8       FS_type;
-    uint8       OS_name[16];
-    uint8       OS_version[6];
-    uint8       OS_type;
-} _OS_info;
-#pragma pop
-const _OS_info *oinfo = (_OS_info *) 0x7D00;
+	clear_screen("init_kernel", (color_theme >> 4) & 0x0F, color_theme & 0x0F);
+	uint8 *src;
+
+	//clear_screen(function_name, (color >> 4) & 0x0F, color & 0x0F);
+	print("FS Partition Header Start Tag: ", '\0');
+	print(filesystem_pheader->header_start, '\n');
+	print("Partition Type: ", 0);
+	itoa(filesystem_pheader->partition_type, src, 10);
+	print(src, ' ');
+	print("(",0);
+	print(names_for_each_type[filesystem_pheader->partition_type], ')');
+	print("\n", 0);
+	print("Starting LBA: 0x", 0);
+	itoa(filesystem_pheader->starting_LBA, src, 16);
+	print(src, '\n');
+	print("Ending LBA: 0x", 0);
+	itoa(filesystem_pheader->ending_LBA, src, 16);
+	print(src, '\n');
+	uint8 total_sectors = filesystem_pheader->ending_LBA - filesystem_pheader->starting_LBA;
+	print("\tTotal Sectors Of: 0x", 0);
+	itoa(total_sectors, src, 16);
+	print(src, '\n');
+	print("\tTotal Bytes: ", 0);
+	uint16 total = total_sectors * 512;
+	itoa(total, src, 10);
+	print(src, '\n');
+	print("Virtual Address: 0x", 0);
+	itoa(filesystem_pheader->virtual_address, src, 16);
+	print(src, '\n');
+	print("Partition Address: 0x", 0);
+	itoa(filesystem_pheader->partition_address, src, 16);
+	print(src, '\n');
+	print("Type Of FS: ", 0);
+	itoa(filesystem_pheader->FS_type, src, 10);
+	print(src, '(');
+	print(names_for_each_FS[filesystem_pheader->FS_type], ')');
+	print("\n", 0);
+	print("FS Partition Header End Tag: ", 0);
+	print(filesystem_pheader->header_end, '\n');
+}
 
 extern struct vbe_info_structure vbe_info_block;
 

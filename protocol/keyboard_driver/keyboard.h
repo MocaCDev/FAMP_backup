@@ -266,6 +266,7 @@ uint8 get_key()
 		/* Left shift key released. */
 		case 0xAA:shift_pressed = false;return 0;
 		case 0x0: return '\0';
+		case 0x0E: return 0x0E;
 		default: break;
 	}
 
@@ -318,33 +319,73 @@ uint8 get_key()
 static uint8 user_input = 0;
 static uint8 input_buffer[80];
 
-void input(uint8 *display_message, bool just_get_character)
+void get_long_input(uint8 *display_message)
 {
 	if(display_message != NULL)
-		print(display_message);
+		print(display_message, 0);
 	
 	/* Just make sure it's zero. */
 	user_input = 0;
 
 	memsetb(input_buffer, 0, 80);
 
-	if(just_get_character == false)
+	uint8 ind = 0;
+	while(user_input != '\n')
 	{
-		uint16 ind = 0;
-		while(user_input != '\n')
+		user_input = get_key();
+		if(user_input == 0) continue;
+		if(user_input == 0x0E)
 		{
-			user_input = get_key();
-			if(user_input == 0) continue;
-			put_char(user_input);
+			/* If `ind` is zero we have removed all the input. Do nothing. */
+			if(ind == 0) continue;
 
-			input_buffer[ind] = user_input;
-			ind++;
+			/* Backspace. */
+			put_char(0x0E);
+
+			/* Decrement the index in `input_buffer` and assign the according index to `\0`. */
+			ind--;
+			input_buffer[ind] = '\0';
+			continue;
 		}
-		input_buffer[ind - 1] = '\0';
-		return;
+		put_char(user_input);
+
+		input_buffer[ind] = user_input;
+		ind++;
 	}
+	input_buffer[ind - 1] = '\0';
+	return;
+}
+
+void get_char(uint8 *display_message)
+{
+	if(display_message != NULL)
+		print(display_message, 0);
+	
+	/* Just make sure it's zero. */
+	redo:
+	user_input = 0;
+	
+	/* We always wait for `enter` to be pressed. We need to save the key that we get. */
+	uint8 old_key = user_input;
 
 	while(user_input == 0) user_input = get_key();
+
+	/* If the user presses `backspace`, then that is invalid. Redo. */
+	if(user_input == 0x0E) goto redo;
+	
+	/* Print the key then store it. */
+	put_char(user_input);
+	old_key = user_input;
+
+	/* Wait for `enter`. */
+	user_input = 0;
+	while(user_input != '\n') {
+		user_input = get_key();
+		if(user_input == 0x0E) { put_char(0x0E); goto redo; }
+	}
+
+	/* Reassign the `user_input` to the key the user inputted. */
+	user_input = old_key;
 }
 
 #endif
